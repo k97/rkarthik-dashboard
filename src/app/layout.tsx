@@ -11,7 +11,7 @@ const hankenGrotesk = Hanken_Grotesk({
 
 export const metadata: Metadata = {
   title: "Dashboard",
-  description: "Personal dashboard with widgets",
+  description: "A personal dashboard widgets built using Claude Code ",
 };
 
 export default function RootLayout({

@@ -51,8 +51,8 @@ export function AnalogClock({
   const themeFolder = useLight ? 'light' : 'dark';
 
   // Colors based on theme
-  const handStroke = useLight ? '#1a1a1a' : '#ffffff';
-  const handFill = useLight ? '#f5f5f5' : '#333333';
+  const handStroke = useLight ? '#1a1a1a' : '#fff';
+  const handFill = useLight ? '#e4e4e9' : '#000000';
   const secondsColor = useLight ? '#1a1a1a' : '#ffffff';
   const centerDotColor = useLight ? '#1a1a1a' : '#ffffff';
 
