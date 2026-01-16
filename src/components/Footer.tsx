@@ -10,10 +10,19 @@ export const Footer = () => {
           href="https://rkarthik.co"
           target="_blank"
           rel="noopener noreferrer"
+          className="px-1 cursor-pointer"
+        >
+          &copy; 2025 Karthik
+        </a>
+        -
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
           className="pl-1 cursor-pointer"
         >
-          &copy; 2025 <span className=' text-emerald-300 '>Karthik</span>
+          Info
         </a>
+        
       </p>
     </footer>
   );

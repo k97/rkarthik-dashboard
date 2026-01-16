@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Settings2, LayoutDashboard, Globe, Timer } from 'lucide-react';
 import { useWidgets, WidgetId } from '@/context/WidgetContext';
 import { CitySelector } from './CitySelector';
+import { cn } from '@/lib/utils';
 
 const widgetLabels: Record<WidgetId, string> = {
   'home-group': 'Home (Clock & Weather)',
@@ -57,15 +58,33 @@ export function SettingsOverlay() {
 
         <Tabs value={settingsTab} onValueChange={(value) => setSettingsTab(value as any)} className="flex-1 overflow-hidden flex flex-col">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="widgets" className="flex items-center gap-2 data-[state=active]:text-white">
+            <TabsTrigger 
+              value="widgets" 
+              className={cn(
+                "flex items-center gap-2 cursor-pointer",
+                "data-[state=active]:text-white data-[state=active]:cursor-default"
+              )}
+            >
               <LayoutDashboard className="h-4 w-4" />
               Widgets
             </TabsTrigger>
-            <TabsTrigger value="cities" className="flex items-center gap-2 data-[state=active]:text-white">
+            <TabsTrigger 
+              value="cities" 
+              className={cn(
+                "flex items-center gap-2 cursor-pointer",
+                "data-[state=active]:text-white data-[state=active]:cursor-default"
+              )}
+            >
               <Globe className="h-4 w-4" />
               Cities
             </TabsTrigger>
-            <TabsTrigger value="timer" className="flex items-center gap-2 data-[state=active]:text-white">
+            <TabsTrigger 
+              value="timer" 
+              className={cn(
+                "flex items-center gap-2 cursor-pointer",
+                "data-[state=active]:text-white data-[state=active]:cursor-default"
+              )}
+            >
               <Timer className="h-4 w-4" />
               Timer
             </TabsTrigger>
