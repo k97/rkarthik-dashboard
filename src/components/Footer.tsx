@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { InfoDialog } from './InfoDialog';
 
 export const Footer = () => {
   return (
@@ -15,14 +16,9 @@ export const Footer = () => {
           &copy; 2025 Karthik
         </a>
         -
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          className="pl-1 cursor-pointer"
-        >
-          Info
-        </a>
-        
+        <InfoDialog>
+          <span className="pl-1 cursor-pointer underline">Info</span>
+        </InfoDialog>
       </p>
     </footer>
   );
