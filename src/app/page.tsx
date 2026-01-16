@@ -11,6 +11,7 @@ import { useWidgets, WidgetId } from '@/context/WidgetContext';
 import { useWeather } from '@/hooks/useWeather';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useNotification } from '@/hooks/useNotification';
+import { Footer } from '@/components/Footer';
 
 export default function Home() {
   const { location, setAutoLocation } = useWidgets();
@@ -107,6 +108,7 @@ export default function Home() {
       <div className="mx-auto max-w-3xl mt-10">
         <WidgetGrid>{renderWidget}</WidgetGrid>
       </div>
+      <Footer />
     </div>
   );
 }
