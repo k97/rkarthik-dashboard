@@ -118,7 +118,7 @@ export function CitySelector() {
           variant={activeTab === 'home' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setCitySubTab('home')}
-          className="flex-1"
+          className="flex-1 cursor-pointer data-[state=active]:cursor-default"
         >
           Home City
         </Button>
@@ -126,7 +126,7 @@ export function CitySelector() {
           variant={activeTab === 'world' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setCitySubTab('world')}
-          className="flex-1"
+          className="flex-1 cursor-pointer data-[state=active]:cursor-default"
         >
           World Clocks
         </Button>
