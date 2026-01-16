@@ -10,6 +10,19 @@ interface DateInfo {
   dayOfWeek: string;
   month: string;
   day: number;
+  weekNumber: number;
+}
+
+function getWeekNumber(date: Date): number {
+  const target = new Date(date.valueOf());
+  const dayNumber = (date.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNumber + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) {
+    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  }
+  return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
 }
 
 function getDateInfo(timezone: string): DateInfo {
@@ -34,6 +47,7 @@ function getDateInfo(timezone: string): DateInfo {
     dayOfWeek: dayFormatter.format(now),
     month: monthFormatter.format(now),
     day: parseInt(dateFormatter.format(now)),
+    weekNumber: getWeekNumber(now),
   };
 }
 
@@ -126,7 +140,7 @@ export function DateWidget({ isDragging }: DateWidgetProps) {
                 mode="single"
                 selected={selectedDate}
                 onSelect={handleDateSelect}
-                className="!p-0 [--cell-size:2rem] scale-[0.85] origin-center"
+                className="!p-0 [--cell-size:2.025rem] scale-[0.95] origin-center"
               />
             </div>
           </WidgetContent>
@@ -148,6 +162,11 @@ export function DateWidget({ isDragging }: DateWidgetProps) {
             {/* Large date number */}
             <div className="text-card-foreground text-9xl font-bold leading-none mt-2">
               {dateInfo.day}
+            </div>
+
+            {/* Week number */}
+            <div className=" text-lg mt-2 text-gray-500/80">
+              Week #{dateInfo.weekNumber}
             </div>
           </WidgetContent>
         )}

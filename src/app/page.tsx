@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { WidgetGrid } from '@/components/WidgetGrid';
-import { WidgetToggleOverlay } from '@/components/WidgetToggleOverlay';
+import { SettingsOverlay } from '@/components/SettingsOverlay';
 import { HomeGroupWidget } from '@/components/widgets/HomeGroupWidget';
 import { WorldClockWidget } from '@/components/widgets/WorldClockWidget';
 import { DateWidget } from '@/components/widgets/DateWidget';
@@ -13,14 +13,14 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useNotification } from '@/hooks/useNotification';
 
 export default function Home() {
-  const { location, setAutoLocation, setManualLocation } = useWidgets();
-  const { coords, status: geoStatus, retry: retryGeolocation } = useGeolocation();
+  const { location, setAutoLocation } = useWidgets();
+  const { coords, status: geoStatus } = useGeolocation();
 
   // Determine weather fetch parameters based on location state
   const weatherOptions = location.mode === 'manual' && location.manualLocation
     ? { city: location.manualLocation.cityName, timezone: location.manualLocation.timezone }
     : location.mode === 'auto' && location.coords
-    ? { coords: location.coords }
+    ? { coords: location.coords, timezone: location.resolvedTimezone || undefined }
     : coords
     ? { coords: { latitude: coords.latitude, longitude: coords.longitude } }
     : {};
@@ -83,8 +83,6 @@ export default function Home() {
             cityName={displayCityName}
             timezone={displayTimezone}
             showLocationPicker={needsLocationPicker && location.mode === 'pending'}
-            onSelectLocation={setManualLocation}
-            onRetryGeolocation={retryGeolocation}
           />
         );
       case 'world-clocks':
@@ -105,7 +103,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <WidgetToggleOverlay />
+      <SettingsOverlay />
       <div className="mx-auto max-w-3xl mt-10">
         <WidgetGrid>{renderWidget}</WidgetGrid>
       </div>

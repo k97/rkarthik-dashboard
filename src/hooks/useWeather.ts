@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { WeatherCondition, SunData } from '@/types/weather';
-import { createSunData } from '@/components/widgets/SunriseSunsetWidget';
+import { createSunData } from '@/lib/utils';
 
 interface WeatherApiResponse {
   temperature: number;
@@ -13,6 +13,8 @@ interface WeatherApiResponse {
   icon: string;
   cityName: string;
   timezone: number;
+  lat: number;
+  lon: number;
 }
 
 interface WeatherData {
@@ -63,10 +65,30 @@ function mapCondition(condition: string, icon: string): WeatherCondition {
   return conditionMap[condition] || 'clouds';
 }
 
-// Convert UTC offset in seconds to IANA timezone (approximate)
+// Convert UTC offset in seconds to IANA timezone
+// For auto-location, prefer browser timezone as it's more accurate
+// But validate that the offset matches
 function offsetToTimezone(offsetSeconds: number): string {
-  // Use browser's timezone as it's more accurate for the user's location
-  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+  // Get current UTC offset of browser timezone in seconds
+  const now = new Date();
+  const browserOffset = -now.getTimezoneOffset() * 60; // getTimezoneOffset returns minutes, negative
+
+  // If browser offset matches OpenWeather offset, use browser timezone
+  // This handles DST correctly
+  if (Math.abs(browserOffset - offsetSeconds) < 300) { // Within 5 minutes tolerance
+    return browserTimezone;
+  }
+
+  // If offsets don't match, log warning and still use browser timezone
+  // since we don't have enough info to determine the correct IANA timezone
+  console.warn(
+    `Timezone offset mismatch: browser offset ${browserOffset}s, OpenWeather offset ${offsetSeconds}s. ` +
+    `Using browser timezone ${browserTimezone} for sunrise/sunset times.`
+  );
+
+  return browserTimezone;
 }
 
 interface UseWeatherOptions {
@@ -120,6 +142,20 @@ export function useWeather(options: UseWeatherOptions): UseWeatherReturn {
 
       // Use provided timezone or derive from browser/offset
       const effectiveTimezone = timezone || offsetToTimezone(data.timezone);
+
+      // Log detailed sunrise/sunset information for debugging
+      console.log('Weather data received:', {
+        city: data.cityName,
+        lat: data.lat,
+        lon: data.lon,
+        timezoneOffset: data.timezone,
+        sunrise: data.sunrise,
+        sunset: data.sunset,
+        sunriseUTC: new Date(data.sunrise * 1000).toUTCString(),
+        sunsetUTC: new Date(data.sunset * 1000).toUTCString(),
+        effectiveTimezone,
+      });
+
       setSunData(createSunData(data.sunrise, data.sunset, effectiveTimezone));
 
       setLocationData({

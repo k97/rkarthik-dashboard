@@ -2,13 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export type PomodoroPhase = 'focus' | 'shortBreak' | 'longBreak';
+export type PomodoroPhase = 'focus' | 'break';
 export type PomodoroStatus = 'idle' | 'running' | 'paused' | 'completed';
 
 interface PomodoroSettings {
   focusDuration: number;
-  shortBreakDuration: number;
-  longBreakDuration: number;
+  breakDuration: number;
   autoStartBreaks: boolean;
 }
 
@@ -34,7 +33,6 @@ interface UsePomodoroReturn extends PomodoroState {
   progress: number; // 0-100
 }
 
-const POMODOROS_BEFORE_LONG_BREAK = 4;
 const STORAGE_KEY = 'dashboard-pomodoro-state';
 const RECENT_TASKS_KEY = 'dashboard-recent-tasks';
 const MAX_RECENT_TASKS = 10;
@@ -95,6 +93,13 @@ function loadPersistedState(settings: PomodoroSettings): PomodoroState {
     }
 
     const persisted: PersistedPomodoroState = JSON.parse(stored);
+
+    // Migrate old phase values
+    const phase = persisted.phase as string;
+    if (phase === 'shortBreak' || phase === 'longBreak') {
+      persisted.phase = 'break' as PomodoroPhase;
+    }
+
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - persisted.lastUpdatedAt) / 1000);
 
@@ -173,25 +178,19 @@ export function usePomodoro(
       switch (phase) {
         case 'focus':
           return s.focusDuration;
-        case 'shortBreak':
-          return s.shortBreakDuration;
-        case 'longBreak':
-          return s.longBreakDuration;
+        case 'break':
+          return s.breakDuration;
       }
     },
     []
   );
 
   const getNextPhase = useCallback(
-    (currentPhase: PomodoroPhase, completedCount: number): PomodoroPhase => {
+    (currentPhase: PomodoroPhase): PomodoroPhase => {
       if (currentPhase === 'focus') {
-        // After completing 4 pomodoros, take a long break
-        if ((completedCount + 1) % POMODOROS_BEFORE_LONG_BREAK === 0) {
-          return 'longBreak';
-        }
-        return 'shortBreak';
+        return 'break';
       }
-      // After any break, go back to focus
+      // After break, go back to focus
       return 'focus';
     },
     []
@@ -204,7 +203,7 @@ export function usePomodoro(
         ? prev.completedPomodoros + 1
         : prev.completedPomodoros;
 
-      const nextPhase = getNextPhase(prev.phase, prev.completedPomodoros);
+      const nextPhase = getNextPhase(prev.phase);
       const nextDuration = getDurationForPhase(nextPhase, settings);
 
       // Save task name to recent tasks when focus phase completes
@@ -232,7 +231,7 @@ export function usePomodoro(
     if (state.status === 'running') {
       intervalRef.current = setInterval(() => {
         setState((prev) => {
-          if (prev.timeRemaining <= 1) {
+          if (prev.timeRemaining <= 0) {
             return prev; // Will be handled by the phase complete check
           }
           return { ...prev, timeRemaining: prev.timeRemaining - 1 };

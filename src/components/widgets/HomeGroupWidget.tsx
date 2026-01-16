@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { Widget, WidgetContent } from './Widget';
 import { AnalogClock } from './AnalogClock';
-import { LocationPicker } from './LocationPicker';
+import { Button } from '@/components/ui/button';
 import { WeatherData, SunData } from '@/types/weather';
 import { Sunrise, Sunset, MapPin } from 'lucide-react';
+import { useWidgets } from '@/context/WidgetContext';
 
 // Sunrise yellow and Sunset orange colors from design
 const SUNRISE_COLOR = '#FBBF24';
@@ -29,6 +30,121 @@ interface TimeInfo {
   timezoneAbbr: string;
 }
 
+function getTimezoneAbbr(timezone: string): string {
+  // Comprehensive timezone mapping for all cities in database
+  const timezoneMap: Record<string, string> = {
+    // Oceania
+    'Australia/Melbourne': 'AEDT/AEST',
+    'Australia/Sydney': 'AEDT/AEST',
+    'Australia/Brisbane': 'AEST',
+    'Australia/Perth': 'AWST',
+    'Australia/Adelaide': 'ACDT/ACST',
+    'Australia/Hobart': 'AEDT/AEST',
+    'Australia/Darwin': 'ACST',
+    'Pacific/Auckland': 'NZDT/NZST',
+    'Pacific/Fiji': 'FJT',
+
+    // Asia
+    'Asia/Tokyo': 'JST',
+    'Asia/Hong_Kong': 'HKT',
+    'Asia/Singapore': 'SGT',
+    'Asia/Seoul': 'KST',
+    'Asia/Shanghai': 'CST',
+    'Asia/Bangkok': 'ICT',
+    'Asia/Manila': 'PHT',
+    'Asia/Jakarta': 'WIB',
+    'Asia/Kuala_Lumpur': 'MYT',
+    'Asia/Taipei': 'CST',
+    'Asia/Ho_Chi_Minh': 'ICT',
+
+    // Middle East
+    'Asia/Dubai': 'GST',
+    'Asia/Riyadh': 'AST',
+    'Asia/Jerusalem': 'IST/IDT',
+    'Europe/Istanbul': 'TRT',
+    'Asia/Qatar': 'AST',
+    'Asia/Kuwait': 'AST',
+    'Asia/Beirut': 'EET/EEST',
+
+    // Indian Subcontinent
+    'Asia/Kolkata': 'IST',
+    'Asia/Karachi': 'PKT',
+    'Asia/Dhaka': 'BST',
+    'Asia/Colombo': 'IST',
+
+    // Europe
+    'Europe/London': 'GMT/BST',
+    'Europe/Paris': 'CET/CEST',
+    'Europe/Berlin': 'CET/CEST',
+    'Europe/Madrid': 'CET/CEST',
+    'Europe/Rome': 'CET/CEST',
+    'Europe/Amsterdam': 'CET/CEST',
+    'Europe/Brussels': 'CET/CEST',
+    'Europe/Vienna': 'CET/CEST',
+    'Europe/Zurich': 'CET/CEST',
+    'Europe/Stockholm': 'CET/CEST',
+    'Europe/Copenhagen': 'CET/CEST',
+    'Europe/Oslo': 'CET/CEST',
+    'Europe/Helsinki': 'EET/EEST',
+    'Europe/Warsaw': 'CET/CEST',
+    'Europe/Prague': 'CET/CEST',
+    'Europe/Budapest': 'CET/CEST',
+    'Europe/Athens': 'EET/EEST',
+    'Europe/Lisbon': 'WET/WEST',
+    'Europe/Dublin': 'GMT/IST',
+    'Europe/Moscow': 'MSK',
+
+    // North America
+    'America/New_York': 'EST/EDT',
+    'America/Chicago': 'CST/CDT',
+    'America/Denver': 'MST/MDT',
+    'America/Los_Angeles': 'PST/PDT',
+    'America/Phoenix': 'MST',
+    'America/Toronto': 'EST/EDT',
+    'America/Vancouver': 'PST/PDT',
+    'America/Montreal': 'EST/EDT',
+    'America/Mexico_City': 'CST/CDT',
+
+    // South America
+    'America/Sao_Paulo': 'BRT/BRST',
+    'America/Argentina/Buenos_Aires': 'ART',
+    'America/Lima': 'PET',
+    'America/Bogota': 'COT',
+    'America/Santiago': 'CLT/CLST',
+    'America/Caracas': 'VET',
+
+    // Africa
+    'Africa/Cairo': 'EET',
+    'Africa/Johannesburg': 'SAST',
+    'Africa/Lagos': 'WAT',
+    'Africa/Nairobi': 'EAT',
+    'Africa/Casablanca': 'WET/WEST',
+    'Africa/Tunis': 'CET',
+    'Africa/Accra': 'GMT',
+    'Africa/Addis_Ababa': 'EAT',
+
+    // Pacific
+    'Pacific/Honolulu': 'HST',
+    'Pacific/Guam': 'ChST',
+  };
+
+  // Check if we have a manual mapping
+  if (timezoneMap[timezone]) {
+    return timezoneMap[timezone];
+  }
+
+  // Calculate UTC offset as fallback
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    timeZoneName: 'shortOffset',
+  });
+  const parts = formatter.formatToParts(now);
+  const offset = parts.find(p => p.type === 'timeZoneName')?.value || '';
+
+  return offset.replace('GMT', 'UTC');
+}
+
 function getTimeInfo(timezone: string): TimeInfo {
   const now = new Date();
 
@@ -44,14 +160,9 @@ function getTimeInfo(timezone: string): TimeInfo {
   const month = parts.find(p => p.type === 'month')?.value || '';
   const day = parseInt(parts.find(p => p.type === 'day')?.value || '1');
 
-  const abbrFormatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: timezone,
-    timeZoneName: 'short',
-  });
-  const abbrParts = abbrFormatter.formatToParts(now);
-  const abbr = abbrParts.find(p => p.type === 'timeZoneName')?.value || '';
+  const timezoneAbbr = getTimezoneAbbr(timezone);
 
-  return { dayName, month, day, timezoneAbbr: abbr };
+  return { dayName, month, day, timezoneAbbr };
 }
 
 function getCityCode(city: string, timezone?: string | null): string {
@@ -137,8 +248,6 @@ interface HomeGroupWidgetProps {
   cityName?: string | null;
   timezone?: string | null;
   showLocationPicker?: boolean;
-  onSelectLocation?: (cityName: string, timezone: string) => void;
-  onRetryGeolocation?: () => void;
 }
 
 export function HomeGroupWidget({
@@ -149,9 +258,8 @@ export function HomeGroupWidget({
   cityName,
   timezone,
   showLocationPicker,
-  onSelectLocation,
-  onRetryGeolocation,
 }: HomeGroupWidgetProps) {
+  const { openSettings } = useWidgets();
   const effectiveTimezone = timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [timeInfo, setTimeInfo] = useState<TimeInfo | null>(null);
 
@@ -182,7 +290,7 @@ export function HomeGroupWidget({
   if (!timeInfo) return null;
 
   // Show location picker prompt if needed
-  if (showLocationPicker && onSelectLocation) {
+  if (showLocationPicker) {
     return (
       <Widget isDragging={isDragging}>
         <WidgetContent className="h-full flex flex-col items-center justify-center gap-4">
@@ -193,11 +301,13 @@ export function HomeGroupWidget({
               Select your location to see local time and weather
             </p>
           </div>
-          <LocationPicker
-            onSelectCity={onSelectLocation}
-            onRetryGeolocation={onRetryGeolocation}
-            showRetryOption={!!onRetryGeolocation}
-          />
+          <Button
+            variant={"outline"}
+            onClick={() => openSettings('cities')}
+            className="cursor-pointer"
+          >
+            Select Location
+          </Button>
         </WidgetContent>
       </Widget>
     );
@@ -216,7 +326,7 @@ export function HomeGroupWidget({
             <div className="text-card-foreground text-xl font-medium mt-1">
               {timeInfo.dayName}, {timeInfo.month} {timeInfo.day}
             </div>
-            <div className="text-muted-foreground text-base mt-1">
+            <div className="text-muted-foreground text-base mt-1 truncate max-w-[200px]">
               {timeInfo.timezoneAbbr}
             </div>
           </div>

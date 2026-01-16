@@ -31,8 +31,7 @@ interface WorldClock {
 
 interface PomodoroSettings {
   focusDuration: number; // minutes
-  shortBreakDuration: number;
-  longBreakDuration: number;
+  breakDuration: number;
   autoStartBreaks: boolean;
 }
 
@@ -63,6 +62,9 @@ interface WidgetState {
   pomodoroSettings: PomodoroSettings;
 }
 
+export type SettingsTab = 'widgets' | 'cities' | 'timer';
+export type CitySubTab = 'home' | 'world';
+
 interface WidgetContextValue extends WidgetState {
   toggleWidget: (id: WidgetId) => void;
   reorderWidgets: (widgets: WidgetConfig[]) => void;
@@ -74,6 +76,13 @@ interface WidgetContextValue extends WidgetState {
   updateWorldClock: (id: string, clock: Partial<WorldClock>) => void;
   updatePomodoroSettings: (settings: Partial<PomodoroSettings>) => void;
   isWidgetVisible: (id: WidgetId) => boolean;
+  openSettings: (tab?: SettingsTab, citySubTab?: CitySubTab) => void;
+  settingsOpen: boolean;
+  settingsTab: SettingsTab;
+  citySubTab: CitySubTab;
+  setSettingsOpen: (open: boolean) => void;
+  setSettingsTab: (tab: SettingsTab) => void;
+  setCitySubTab: (tab: CitySubTab) => void;
 }
 
 const defaultWidgets: WidgetConfig[] = [
@@ -109,8 +118,7 @@ const defaultWorldClocks: WorldClock[] = [
 
 const defaultPomodoroSettings: PomodoroSettings = {
   focusDuration: 25,
-  shortBreakDuration: 5,
-  longBreakDuration: 15,
+  breakDuration: 5,
   autoStartBreaks: false,
 };
 
@@ -136,6 +144,9 @@ const WidgetContext = createContext<WidgetContextValue | null>(null);
 export function WidgetProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WidgetState>(defaultState);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>('widgets');
+  const [citySubTab, setCitySubTab] = useState<CitySubTab>('home');
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -143,9 +154,22 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
+
+        // Migrate old pomodoro settings format
+        let pomodoroSettings = parsed.pomodoroSettings || defaultPomodoroSettings;
+        if ('shortBreakDuration' in pomodoroSettings) {
+          // Migrate from old format
+          pomodoroSettings = {
+            focusDuration: pomodoroSettings.focusDuration,
+            breakDuration: pomodoroSettings.shortBreakDuration,
+            autoStartBreaks: pomodoroSettings.autoStartBreaks,
+          };
+        }
+
         setState((prev) => ({
           ...prev,
           ...parsed,
+          pomodoroSettings,
           // Ensure all default widgets exist
           widgets: defaultWidgets.map((defaultWidget) => {
             const storedWidget = parsed.widgets?.find(
@@ -263,6 +287,14 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
     [state.widgets]
   );
 
+  const openSettings = useCallback((tab: SettingsTab = 'widgets', cityTab: CitySubTab = 'home') => {
+    setSettingsTab(tab);
+    if (tab === 'cities') {
+      setCitySubTab(cityTab);
+    }
+    setSettingsOpen(true);
+  }, []);
+
   const value: WidgetContextValue = {
     ...state,
     toggleWidget,
@@ -275,6 +307,13 @@ export function WidgetProvider({ children }: { children: ReactNode }) {
     updateWorldClock,
     updatePomodoroSettings,
     isWidgetVisible,
+    openSettings,
+    settingsOpen,
+    settingsTab,
+    citySubTab,
+    setSettingsOpen,
+    setSettingsTab,
+    setCitySubTab,
   };
 
   // Prevent hydration mismatch by not rendering until hydrated

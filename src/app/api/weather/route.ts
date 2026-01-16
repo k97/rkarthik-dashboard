@@ -12,6 +12,8 @@ interface WeatherResponse {
   icon: string;
   cityName: string;
   timezone: number; // UTC offset in seconds
+  lat: number;
+  lon: number;
 }
 
 export async function GET(request: NextRequest) {
@@ -64,6 +66,8 @@ export async function GET(request: NextRequest) {
       icon: data.weather[0].icon,
       cityName: data.name,
       timezone: data.timezone, // UTC offset in seconds
+      lat: data.coord.lat,
+      lon: data.coord.lon,
     };
 
     return NextResponse.json(weatherData);
