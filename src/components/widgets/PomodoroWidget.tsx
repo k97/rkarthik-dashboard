@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Play, Pause, RotateCcw, SkipForward, Bolt } from 'lucide-react';
 import { usePomodoro, PomodoroPhase } from '@/hooks/usePomodoro';
+import { useNotification } from '@/hooks/useNotification';
 import { useWidgets } from '@/context/WidgetContext';
 
 interface PomodoroWidgetProps {
@@ -14,6 +15,7 @@ interface PomodoroWidgetProps {
 
 export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetProps) {
   const { pomodoroSettings, openSettings } = useWidgets();
+  const { notifyPomodoroComplete, requestPermission, hasPermission } = useNotification();
 
   const {
     status,
@@ -26,20 +28,36 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
     setTaskName,
   } = usePomodoro(pomodoroSettings, onPhaseComplete);
 
+  const handleTestNotification = () => {
+    notifyPomodoroComplete('focus', 'Test Task');
+  };
+
   return (
     <Widget isDragging={isDragging}>
       <WidgetContent className="h-full flex flex-col">
         {/* Header */}
         <WidgetHeader className="mb-0">
           <WidgetTitle className='text-base'>Timer</WidgetTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 cursor-pointer"
-            onClick={() => openSettings('timer')}
-          >
-            <Bolt className="h-5 w-5"/>
-          </Button>
+          <div className="flex items-center gap-2">
+            {!hasPermission && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8"
+                onClick={requestPermission}
+              >
+                Enable Notifications
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 cursor-pointer"
+              onClick={() => openSettings('timer')}
+            >
+              <Bolt className="h-5 w-5"/>
+            </Button>
+          </div>
         </WidgetHeader>
 
         {/* Main content - centered */}
@@ -108,6 +126,7 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
             <SkipForward className="h-4 w-4" />
           </Button>
         </div>
+        <Button onClick={handleTestNotification}>Test Notification</Button>
       </WidgetContent>
     </Widget>
   );

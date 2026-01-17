@@ -4,7 +4,7 @@ import { ReactNode, useState, KeyboardEvent } from 'react';
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor as DndKeyboardSensor,
+  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -25,19 +25,17 @@ import { useWidgets, WidgetId } from '@/context/WidgetContext';
 const WIDGET_HEIGHT = 284; // Fixed height for all widgets in pixels
 
 // Custom KeyboardSensor to prevent drag from starting on interactive elements
-class CustomKeyboardSensor extends DndKeyboardSensor {
-  protected handleKeyDown(event: KeyboardEvent<Element>): void {
-    const interactiveElements = ['input', 'textarea', 'button'];
-    if (
-      event.code === 'Space' &&
-      event.target instanceof HTMLElement &&
-      interactiveElements.includes(event.target.tagName.toLowerCase())
-    ) {
-      return;
-    }
-    super.handleKeyDown(event);
+const customKeyboardSensor = (event: KeyboardEvent<Element>) => {
+  const interactiveElements = ['input', 'textarea', 'button'];
+  if (
+    event.code === 'Space' &&
+    event.target instanceof HTMLElement &&
+    interactiveElements.includes(event.target.tagName.toLowerCase())
+  ) {
+    return false;
   }
-}
+  return true;
+};
 
 interface SortableWidgetProps {
   id: WidgetId;
@@ -83,8 +81,11 @@ export function WidgetGrid({ children }: WidgetGridProps) {
         distance: 8,
       },
     }),
-    useSensor(CustomKeyboardSensor, {
+    useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
+      onActivation: ({ event }) => {
+        return customKeyboardSensor(event as unknown as KeyboardEvent<Element>);
+      },
     })
   );
 

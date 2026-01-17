@@ -104,8 +104,7 @@ export function useNotification(): UseNotificationReturn {
       if (hasPermission && typeof window !== 'undefined' && 'Notification' in window) {
         const phaseLabels: Record<string, string> = {
           focus: 'Focus session',
-          shortBreak: 'Short break',
-          longBreak: 'Long break',
+          break: 'Break',
         };
 
         const title = `${phaseLabels[phase] || phase} complete!`;
