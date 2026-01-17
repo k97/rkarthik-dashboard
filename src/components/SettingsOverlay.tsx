@@ -20,7 +20,6 @@ import { Settings2, LayoutDashboard, Globe, Timer } from 'lucide-react';
 import { useWidgets, WidgetId, SettingsTab } from '@/context/WidgetContext';
 import { CitySelector } from './CitySelector';
 import { cn } from '@/lib/utils';
-import { useEffect, useState } from 'react';
 
 const widgetLabels: Record<WidgetId, string> = {
   'home-group': 'Home (Clock & Weather)',
@@ -40,71 +39,6 @@ export function SettingsOverlay() {
     setSettingsOpen,
     setSettingsTab,
   } = useWidgets();
-
-  // Track browser notification permission state
-  const [browserHasPermission, setBrowserHasPermission] = useState(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      return Notification.permission === 'granted';
-    }
-    return false;
-  });
-
-  // Update browser permission state when settings open or when permission changes
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      return;
-    }
-
-    const updatePermission = () => {
-      const hasPermission = Notification.permission === 'granted';
-      setBrowserHasPermission(hasPermission);
-
-      // If browser permission is revoked, update settings
-      if (!hasPermission && pomodoroSettings.notificationsEnabled) {
-        updatePomodoroSettings({ notificationsEnabled: false });
-      }
-    };
-
-    updatePermission();
-
-    // Check permission when dialog opens
-    if (settingsOpen) {
-      updatePermission();
-    }
-  }, [settingsOpen, pomodoroSettings.notificationsEnabled, updatePomodoroSettings]);
-
-  const handleNotificationToggle = async (checked: boolean) => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      return;
-    }
-
-    if (checked) {
-      // User wants to enable notifications
-      if (Notification.permission === 'granted') {
-        // Already have permission
-        updatePomodoroSettings({ notificationsEnabled: true });
-        setBrowserHasPermission(true);
-      } else if (Notification.permission === 'denied') {
-        // Permission denied - can't enable
-        updatePomodoroSettings({ notificationsEnabled: false });
-        setBrowserHasPermission(false);
-      } else {
-        // Need to request permission
-        try {
-          const permission = await Notification.requestPermission();
-          const granted = permission === 'granted';
-          setBrowserHasPermission(granted);
-          updatePomodoroSettings({ notificationsEnabled: granted });
-        } catch (error) {
-          console.error('Error requesting notification permission:', error);
-          updatePomodoroSettings({ notificationsEnabled: false });
-        }
-      }
-    } else {
-      // User wants to disable notifications
-      updatePomodoroSettings({ notificationsEnabled: false });
-    }
-  };
 
   return (
     <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
@@ -241,28 +175,6 @@ export function SettingsOverlay() {
                   updatePomodoroSettings({ autoStartBreaks: checked })
                 }
               />
-            </div>
-
-            {/* Enable Notifications */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Enable Notifications</label>
-                <Switch
-                  checked={pomodoroSettings.notificationsEnabled && browserHasPermission}
-                  onCheckedChange={handleNotificationToggle}
-                  disabled={!browserHasPermission && Notification?.permission === 'denied'}
-                />
-              </div>
-              {typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied' && (
-                <p className="text-xs text-muted-foreground">
-                  Notifications are blocked. Please enable them in your browser settings.
-                </p>
-              )}
-              {pomodoroSettings.notificationsEnabled && !browserHasPermission && Notification?.permission !== 'denied' && (
-                <p className="text-xs text-muted-foreground">
-                  Browser notification permission required.
-                </p>
-              )}
             </div>
           </TabsContent>
         </Tabs>

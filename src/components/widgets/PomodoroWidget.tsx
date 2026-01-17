@@ -15,7 +15,7 @@ interface PomodoroWidgetProps {
 
 export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetProps) {
   const { pomodoroSettings, openSettings } = useWidgets();
-  const { notifyPomodoroComplete } = useNotification();
+  const { notifyPomodoroComplete, showNotificationPrompt } = useNotification();
 
   const {
     status,
@@ -32,6 +32,14 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
     // Call optional external callback
     onPhaseComplete?.(phase, completedTaskName);
   });
+
+  const handleStart = () => {
+    start();
+    // Show notification prompt when starting timer if not already enabled
+    if (!pomodoroSettings.notificationsEnabled && typeof window !== 'undefined' && 'Notification' in window) {
+      showNotificationPrompt();
+    }
+  };
 
   return (
     <Widget isDragging={isDragging}>
@@ -89,7 +97,7 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
             <Button
               variant="outline"
               size="icon"
-              onClick={start}
+              onClick={handleStart}
               className="h-9 w-9 rounded-full"
             >
               <Play className="h-4 w-4" />

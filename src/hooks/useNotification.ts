@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useWidgets } from '@/context/WidgetContext';
+import { toast } from 'sonner';
 
 interface UseNotificationReturn {
   notifyPomodoroComplete: (phase: string, taskName?: string) => void;
   playSound: () => void;
   requestPermission: () => Promise<void>;
+  showNotificationPrompt: () => void;
 }
 
 // Create a pleasant ding sound using Web Audio API
@@ -46,7 +48,7 @@ function createDingSound(): () => void {
 }
 
 export function useNotification(): UseNotificationReturn {
-  const { pomodoroSettings } = useWidgets();
+  const { pomodoroSettings, updatePomodoroSettings } = useWidgets();
   const playSoundRef = useRef<(() => void) | null>(null);
 
   // Initialize sound function
@@ -76,6 +78,45 @@ export function useNotification(): UseNotificationReturn {
       }
     }
   }, []);
+
+  const showNotificationPrompt = useCallback(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+
+    // Don't show if permission is already granted or denied
+    if (Notification.permission === 'granted') {
+      if (!pomodoroSettings.notificationsEnabled) {
+        updatePomodoroSettings({ notificationsEnabled: true });
+      }
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      return;
+    }
+
+    // Show persistent toast for 2 minutes (120000ms)
+    toast('Enable notifications to get alerted when your timer completes', {
+      duration: 120000,
+      action: {
+        label: 'Enable',
+        onClick: async () => {
+          try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+              updatePomodoroSettings({ notificationsEnabled: true });
+              toast.success('Notifications enabled! You\'ll be notified when your timer completes.', {
+                duration: 5000,
+              });
+            }
+          } catch (error) {
+            console.error('Error requesting notification permission:', error);
+          }
+        },
+      },
+    });
+  }, [pomodoroSettings.notificationsEnabled, updatePomodoroSettings]);
 
   const notifyPomodoroComplete = useCallback(
     (phase: string, taskName?: string) => {
@@ -119,5 +160,6 @@ export function useNotification(): UseNotificationReturn {
     notifyPomodoroComplete,
     playSound,
     requestPermission,
+    showNotificationPrompt,
   };
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
 import "./globals.css";
 import { WidgetProvider } from "@/context/WidgetContext";
+import { Toaster } from "sonner";
 
 const hankenGrotesk = Hanken_Grotesk({
   variable: "--font-hanken-grotesk",
@@ -25,6 +26,7 @@ export default function RootLayout({
         className={`${hankenGrotesk.variable} font-sans antialiased`}
       >
         <WidgetProvider>{children}</WidgetProvider>
+        <Toaster />
       </body>
     </html>
   );
