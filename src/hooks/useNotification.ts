@@ -6,6 +6,7 @@ import { useWidgets } from '@/context/WidgetContext';
 interface UseNotificationReturn {
   notifyPomodoroComplete: (phase: string, taskName?: string) => void;
   playSound: () => void;
+  requestPermission: () => Promise<void>;
 }
 
 // Create a pleasant ding sound using Web Audio API
@@ -62,6 +63,20 @@ export function useNotification(): UseNotificationReturn {
     }
   }, []);
 
+  const requestPermission = useCallback(async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+
+    if (Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (error) {
+        console.error('Error requesting notification permission:', error);
+      }
+    }
+  }, []);
+
   const notifyPomodoroComplete = useCallback(
     (phase: string, taskName?: string) => {
       // Always play sound
@@ -103,5 +118,6 @@ export function useNotification(): UseNotificationReturn {
   return {
     notifyPomodoroComplete,
     playSound,
+    requestPermission,
   };
 }
