@@ -25,13 +25,5 @@ export function createSunData(
   const sunrise = formatTime(sunriseTimestamp, timezone);
   const sunset = formatTime(sunsetTimestamp, timezone);
 
-  console.log('createSunData:', {
-    sunriseTimestamp,
-    sunsetTimestamp,
-    timezone,
-    sunriseFormatted: sunrise,
-    sunsetFormatted: sunset,
-  });
-
   return { sunrise, sunset };
 }

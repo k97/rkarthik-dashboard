@@ -1,11 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { useWidgets } from '@/context/WidgetContext';
 
 interface UseNotificationReturn {
   notifyPomodoroComplete: (phase: string, taskName?: string) => void;
-  requestPermission: () => Promise<boolean>;
-  hasPermission: boolean;
   playSound: () => void;
 }
 
@@ -46,45 +45,13 @@ function createDingSound(): () => void {
 }
 
 export function useNotification(): UseNotificationReturn {
-  const [hasPermission, setHasPermission] = useState(false);
+  const { pomodoroSettings } = useWidgets();
   const playSoundRef = useRef<(() => void) | null>(null);
 
-  // Check and set initial permission state
+  // Initialize sound function
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      setHasPermission(Notification.permission === 'granted');
-    }
-
-    // Initialize sound function
     if (typeof window !== 'undefined') {
       playSoundRef.current = createDingSound();
-    }
-  }, []);
-
-  const requestPermission = useCallback(async (): Promise<boolean> => {
-    if (typeof window === 'undefined' || !('Notification' in window)) {
-      console.warn('Notifications not supported');
-      return false;
-    }
-
-    if (Notification.permission === 'granted') {
-      setHasPermission(true);
-      return true;
-    }
-
-    if (Notification.permission === 'denied') {
-      console.warn('Notification permission denied');
-      return false;
-    }
-
-    try {
-      const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      setHasPermission(granted);
-      return granted;
-    } catch (error) {
-      console.error('Error requesting notification permission:', error);
-      return false;
     }
   }, []);
 
@@ -100,8 +67,13 @@ export function useNotification(): UseNotificationReturn {
       // Always play sound
       playSound();
 
-      // Show notification if we have permission
-      if (hasPermission && typeof window !== 'undefined' && 'Notification' in window) {
+      // Show notification only if enabled in settings and we have browser permission
+      if (
+        pomodoroSettings.notificationsEnabled &&
+        typeof window !== 'undefined' &&
+        'Notification' in window &&
+        Notification.permission === 'granted'
+      ) {
         const phaseLabels: Record<string, string> = {
           focus: 'Focus session',
           break: 'Break',
@@ -121,17 +93,15 @@ export function useNotification(): UseNotificationReturn {
             tag: 'pomodoro',
           });
         } catch (error) {
-          console.warn('Could not show notification:', error);
+          console.error('Could not show notification:', error);
         }
       }
     },
-    [hasPermission, playSound]
+    [playSound, pomodoroSettings.notificationsEnabled]
   );
 
   return {
     notifyPomodoroComplete,
-    requestPermission,
-    hasPermission,
     playSound,
   };
 }

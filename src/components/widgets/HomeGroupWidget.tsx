@@ -244,7 +244,6 @@ interface HomeGroupWidgetProps {
   isDragging?: boolean;
   weatherData?: WeatherData | null;
   sunData?: SunData | null;
-  isLoading?: boolean;
   cityName?: string | null;
   timezone?: string | null;
   showLocationPicker?: boolean;
@@ -254,7 +253,6 @@ export function HomeGroupWidget({
   isDragging,
   weatherData,
   sunData,
-  isLoading,
   cityName,
   timezone,
   showLocationPicker,

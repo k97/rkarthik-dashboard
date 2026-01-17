@@ -33,6 +33,7 @@ interface PomodoroSettings {
   focusDuration: number; // minutes
   breakDuration: number;
   autoStartBreaks: boolean;
+  notificationsEnabled: boolean;
 }
 
 interface LocationCoords {
@@ -120,6 +121,7 @@ const defaultPomodoroSettings: PomodoroSettings = {
   focusDuration: 25,
   breakDuration: 5,
   autoStartBreaks: false,
+  notificationsEnabled: false,
 };
 
 const defaultLocation: LocationState = {
@@ -142,46 +144,64 @@ const STORAGE_KEY = 'dashboard-widget-state';
 const WidgetContext = createContext<WidgetContextValue | null>(null);
 
 export function WidgetProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<WidgetState>(defaultState);
+  const [state, setState] = useState<WidgetState>(() => {
+    if (typeof window === 'undefined') {
+      return defaultState;
+    }
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return defaultState;
+    }
+
+    try {
+      const parsed = JSON.parse(stored);
+
+      // Migrate old pomodoro settings format
+      let pomodoroSettings = parsed.pomodoroSettings || defaultPomodoroSettings;
+      if ('shortBreakDuration' in pomodoroSettings) {
+        // Migrate from old format
+        pomodoroSettings = {
+          focusDuration: pomodoroSettings.focusDuration,
+          breakDuration: pomodoroSettings.shortBreakDuration,
+          autoStartBreaks: pomodoroSettings.autoStartBreaks,
+          notificationsEnabled: false,
+        };
+      }
+      // Ensure notificationsEnabled exists (migration for existing users)
+      if (!('notificationsEnabled' in pomodoroSettings)) {
+        // Initialize based on current browser permission
+        const hasNotificationPermission = typeof window !== 'undefined' &&
+          'Notification' in window &&
+          Notification.permission === 'granted';
+        pomodoroSettings.notificationsEnabled = hasNotificationPermission;
+      }
+
+      return {
+        ...defaultState,
+        ...parsed,
+        pomodoroSettings,
+        // Ensure all default widgets exist
+        widgets: defaultWidgets.map((defaultWidget) => {
+          const storedWidget = parsed.widgets?.find(
+            (w: WidgetConfig) => w.id === defaultWidget.id
+          );
+          return storedWidget || defaultWidget;
+        }),
+      };
+    } catch (e) {
+      console.error('Failed to parse widget state from localStorage:', e);
+      return defaultState;
+    }
+  });
   const [isHydrated, setIsHydrated] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>('widgets');
   const [citySubTab, setCitySubTab] = useState<CitySubTab>('home');
 
-  // Load from localStorage on mount
+  // Set hydrated flag on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-
-        // Migrate old pomodoro settings format
-        let pomodoroSettings = parsed.pomodoroSettings || defaultPomodoroSettings;
-        if ('shortBreakDuration' in pomodoroSettings) {
-          // Migrate from old format
-          pomodoroSettings = {
-            focusDuration: pomodoroSettings.focusDuration,
-            breakDuration: pomodoroSettings.shortBreakDuration,
-            autoStartBreaks: pomodoroSettings.autoStartBreaks,
-          };
-        }
-
-        setState((prev) => ({
-          ...prev,
-          ...parsed,
-          pomodoroSettings,
-          // Ensure all default widgets exist
-          widgets: defaultWidgets.map((defaultWidget) => {
-            const storedWidget = parsed.widgets?.find(
-              (w: WidgetConfig) => w.id === defaultWidget.id
-            );
-            return storedWidget || defaultWidget;
-          }),
-        }));
-      } catch (e) {
-        console.error('Failed to parse widget state from localStorage:', e);
-      }
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsHydrated(true);
   }, []);
 

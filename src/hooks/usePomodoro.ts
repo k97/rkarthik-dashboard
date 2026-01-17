@@ -132,7 +132,7 @@ function loadPersistedState(settings: PomodoroSettings): PomodoroState {
 
 export function usePomodoro(
   settings: PomodoroSettings,
-  onComplete?: (phase: PomodoroPhase) => void
+  onComplete?: (phase: PomodoroPhase, taskName: string) => void
 ): UsePomodoroReturn {
   const [state, setState] = useState<PomodoroState>(() =>
     loadPersistedState(settings)
@@ -147,6 +147,7 @@ export function usePomodoro(
     const loaded = loadPersistedState(settings);
     setState(loaded);
     setIsHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Persist state to localStorage whenever it changes
@@ -165,14 +166,6 @@ export function usePomodoro(
     onCompleteRef.current = onComplete;
   }, [onComplete]);
 
-  // Update time remaining when settings change (only if idle)
-  useEffect(() => {
-    if (state.status === 'idle') {
-      const duration = getDurationForPhase(state.phase, settings);
-      setState((prev) => ({ ...prev, timeRemaining: duration * 60 }));
-    }
-  }, [settings, state.phase, state.status]);
-
   const getDurationForPhase = useCallback(
     (phase: PomodoroPhase, s: PomodoroSettings): number => {
       switch (phase) {
@@ -184,6 +177,14 @@ export function usePomodoro(
     },
     []
   );
+
+  // Update time remaining when settings change (only if idle)
+  useEffect(() => {
+    if (state.status === 'idle') {
+      const duration = getDurationForPhase(state.phase, settings);
+      setState((prev) => ({ ...prev, timeRemaining: duration * 60 }));
+    }
+  }, [settings, state.phase, state.status, getDurationForPhase]);
 
   const getNextPhase = useCallback(
     (currentPhase: PomodoroPhase): PomodoroPhase => {
@@ -211,8 +212,8 @@ export function usePomodoro(
         saveRecentTask(prev.taskName);
       }
 
-      // Trigger callback
-      onCompleteRef.current?.(prev.phase);
+      // Trigger callback with current task name before it gets cleared
+      onCompleteRef.current?.(prev.phase, prev.taskName);
 
       return {
         ...prev,

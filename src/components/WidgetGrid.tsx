@@ -24,13 +24,13 @@ import { useWidgets, WidgetId } from '@/context/WidgetContext';
 
 const WIDGET_HEIGHT = 284; // Fixed height for all widgets in pixels
 
-// Custom KeyboardSensor to prevent drag from starting on interactive elements
-const customKeyboardSensor = (event: KeyboardEvent<Element>) => {
-  const interactiveElements = ['input', 'textarea', 'button'];
+// Custom keyboard sensor filter to prevent drag from starting on interactive elements
+const customKeyboardFilter = (event: KeyboardEvent<Element>) => {
+  const interactiveElements = ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT'];
   if (
     event.code === 'Space' &&
     event.target instanceof HTMLElement &&
-    interactiveElements.includes(event.target.tagName.toLowerCase())
+    interactiveElements.includes(event.target.tagName)
   ) {
     return false;
   }
@@ -84,7 +84,7 @@ export function WidgetGrid({ children }: WidgetGridProps) {
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
       onActivation: ({ event }) => {
-        return customKeyboardSensor(event as unknown as KeyboardEvent<Element>);
+        return customKeyboardFilter(event as unknown as KeyboardEvent<Element>);
       },
     })
   );

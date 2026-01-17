@@ -10,12 +10,12 @@ import { useWidgets } from '@/context/WidgetContext';
 
 interface PomodoroWidgetProps {
   isDragging?: boolean;
-  onPhaseComplete?: (phase: PomodoroPhase) => void;
+  onPhaseComplete?: (phase: PomodoroPhase, taskName: string) => void;
 }
 
 export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetProps) {
   const { pomodoroSettings, openSettings } = useWidgets();
-  const { notifyPomodoroComplete, requestPermission, hasPermission } = useNotification();
+  const { notifyPomodoroComplete } = useNotification();
 
   const {
     status,
@@ -26,11 +26,12 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
     reset,
     skip,
     setTaskName,
-  } = usePomodoro(pomodoroSettings, onPhaseComplete);
-
-  const handleTestNotification = () => {
-    notifyPomodoroComplete('focus', 'Test Task');
-  };
+  } = usePomodoro(pomodoroSettings, (phase, completedTaskName) => {
+    // Call notification when phase completes with the task name from the completed phase
+    notifyPomodoroComplete(phase, completedTaskName);
+    // Call optional external callback
+    onPhaseComplete?.(phase, completedTaskName);
+  });
 
   return (
     <Widget isDragging={isDragging}>
@@ -38,26 +39,14 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
         {/* Header */}
         <WidgetHeader className="mb-0">
           <WidgetTitle className='text-base'>Timer</WidgetTitle>
-          <div className="flex items-center gap-2">
-            {!hasPermission && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8"
-                onClick={requestPermission}
-              >
-                Enable Notifications
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 cursor-pointer"
-              onClick={() => openSettings('timer')}
-            >
-              <Bolt className="h-5 w-5"/>
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 cursor-pointer"
+            onClick={() => openSettings('timer')}
+          >
+            <Bolt className="h-5 w-5"/>
+          </Button>
         </WidgetHeader>
 
         {/* Main content - centered */}
@@ -74,8 +63,9 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
             onChange={(e) => setTaskName(e.target.value)}
             onMouseDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
+              // Prevent all keyboard events from propagating to dnd-kit
+              e.stopPropagation();
               if (e.key === 'Enter') {
-                e.stopPropagation();
                 e.preventDefault();
               }
             }}
@@ -126,7 +116,6 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
             <SkipForward className="h-4 w-4" />
           </Button>
         </div>
-        <Button onClick={handleTestNotification}>Test Notification</Button>
       </WidgetContent>
     </Widget>
   );

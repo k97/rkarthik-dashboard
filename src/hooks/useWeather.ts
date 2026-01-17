@@ -143,19 +143,6 @@ export function useWeather(options: UseWeatherOptions): UseWeatherReturn {
       // Use provided timezone or derive from browser/offset
       const effectiveTimezone = timezone || offsetToTimezone(data.timezone);
 
-      // Log detailed sunrise/sunset information for debugging
-      console.log('Weather data received:', {
-        city: data.cityName,
-        lat: data.lat,
-        lon: data.lon,
-        timezoneOffset: data.timezone,
-        sunrise: data.sunrise,
-        sunset: data.sunset,
-        sunriseUTC: new Date(data.sunrise * 1000).toUTCString(),
-        sunsetUTC: new Date(data.sunset * 1000).toUTCString(),
-        effectiveTimezone,
-      });
-
       setSunData(createSunData(data.sunrise, data.sunset, effectiveTimezone));
 
       setLocationData({
@@ -178,7 +165,7 @@ export function useWeather(options: UseWeatherOptions): UseWeatherReturn {
     } finally {
       setIsLoading(false);
     }
-  }, [city, coords?.latitude, coords?.longitude, timezone]);
+  }, [city, coords, timezone]);
 
   useEffect(() => {
     fetchWeather();

@@ -30,7 +30,7 @@ export function InfoDialog({ children }: { children: React.ReactNode }) {
           </p>
           <p>
             The widgets are designed to be modular and configurable, allowing
-            the ability to customize the cities & functions. The project is an experient done to explore the new claude code features and Gemini's capabilities.
+            the ability to customize the cities & functions. The project is an experiment done to explore the new claude code features and Gemini&apos;s capabilities.
           </p>
         </div>
       </DialogContent>

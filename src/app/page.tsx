@@ -26,7 +26,7 @@ export default function Home() {
     ? { coords: { latitude: coords.latitude, longitude: coords.longitude } }
     : {};
 
-  const { weatherData, sunData, locationData, isLoading } = useWeather(weatherOptions);
+  const { weatherData, sunData, locationData } = useWeather(weatherOptions);
   const { notifyPomodoroComplete, requestPermission } = useNotification();
 
   // Update location state when geolocation succeeds and we get weather data
@@ -80,7 +80,6 @@ export default function Home() {
             isDragging={isDragging}
             weatherData={weatherData}
             sunData={sunData}
-            isLoading={isLoading || geoStatus === 'loading'}
             cityName={displayCityName}
             timezone={displayTimezone}
             showLocationPicker={needsLocationPicker && location.mode === 'pending'}

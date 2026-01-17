@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, MapPin, X, Plus, Check, Loader2, Navigation } from 'lucide-react';
 import { useWidgets } from '@/context/WidgetContext';
-import { CITIES, getCitiesByRegion, searchCities, REGION_ORDER, CityData } from '@/data/cities';
+import { getCitiesByRegion, searchCities, REGION_ORDER, CityData } from '@/data/cities';
 
 export function CitySelector() {
   const [searchQuery, setSearchQuery] = useState('');
