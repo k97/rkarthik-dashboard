@@ -54,6 +54,12 @@ export function PomodoroWidget({ isDragging, onPhaseComplete }: PomodoroWidgetPr
             placeholder="Task name"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            }}
             className="mt-3 text-center h-8 max-w-48 bg-transparent border-none shadow-none text-muted-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0"
           />
         </div>
