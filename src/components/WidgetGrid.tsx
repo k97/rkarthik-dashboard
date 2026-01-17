@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, KeyboardEvent } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -26,25 +26,17 @@ const WIDGET_HEIGHT = 284; // Fixed height for all widgets in pixels
 
 // Custom KeyboardSensor to prevent drag from starting on interactive elements
 class CustomKeyboardSensor extends DndKeyboardSensor {
-  static get id() {
-    return 'CustomKeyboardSensor';
+  protected handleKeyDown(event: KeyboardEvent<Element>): void {
+    const interactiveElements = ['input', 'textarea', 'button'];
+    if (
+      event.code === 'Space' &&
+      event.target instanceof HTMLElement &&
+      interactiveElements.includes(event.target.tagName.toLowerCase())
+    ) {
+      return;
+    }
+    super.handleKeyDown(event);
   }
-
-  static activators = [
-    {
-      eventName: 'onKeyDown' as const,
-      handler: ({ nativeEvent: event }: { nativeEvent: KeyboardEvent }) => {
-        if (
-          event.code === 'Space' &&
-          event.target instanceof HTMLElement &&
-          event.target.closest('input, textarea, button')
-        ) {
-          return false;
-        }
-        return DndKeyboardSensor.activators[0].handler({ nativeEvent: event });
-      },
-    },
-  ];
 }
 
 interface SortableWidgetProps {
