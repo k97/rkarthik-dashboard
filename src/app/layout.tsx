@@ -14,7 +14,10 @@ export const metadata: Metadata = {
   title: "Dashboard by Karthik | Time, Weather & Productivity Widgets",
   description: "A minimalist personal dashboard featuring world clocks, weather updates, and a Pomodoro timer. Track time across Melbourne, Chennai, Berlin, and Dubai with real-time weather data.",
   icons: {
-    icon: "/icons/favicon.ico",
+    icon: [
+      { url: "/icons/favicon.ico" },
+      { url: "/icons/favicon.svg", type: "image/svg+xml" },
+    ],
     shortcut: "/icons/favicon.ico",
     apple: "/icons/apple-touch-icon.png",
   },

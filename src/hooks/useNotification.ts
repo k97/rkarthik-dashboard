@@ -139,13 +139,13 @@ export function useNotification(): UseNotificationReturn {
         const body = taskName
           ? `Great work on "${taskName}"! Time for a break.`
           : phase === 'focus'
-          ? 'Time for a break!'
-          : 'Ready to get back to work?';
+            ? 'Time for a break!'
+            : 'Ready to get back to work?';
 
         try {
           new Notification(title, {
             body,
-            icon: '/favicon.ico',
+            icon: '/icons/android-chrome-192x192.png',
             tag: 'pomodoro',
           });
         } catch (error) {
