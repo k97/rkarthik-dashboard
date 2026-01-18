@@ -11,8 +11,14 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "A personal dashboard widgets built using Claude Code ",
+  title: "Dashboard by Karthik | Time, Weather & Productivity Widgets",
+  description: "A minimalist personal dashboard featuring world clocks, weather updates, and a Pomodoro timer. Track time across Melbourne, Chennai, Berlin, and Dubai with real-time weather data.",
+  icons: {
+    icon: "/icons/favicon.ico",
+    shortcut: "/icons/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  manifest: "/icons/site.webmanifest",
 };
 
 export default function RootLayout({

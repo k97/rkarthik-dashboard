@@ -25,12 +25,10 @@ export function InfoDialog({ children }: { children: React.ReactNode }) {
         </DialogHeader>
         <div className="space-y-4 py-4 text-sm text-muted-foreground">
           <p>
-            This is a simple time & timer dashboard built using Claude Code & Gemini with
-            TypeScript, and Tailwind CSS.
+            A lightweight dashboard experiment built to explore what's possible with modern AI-assisted development tools. Built entirely using Claude Code and Gemini with TypeScript and Tailwind CSS, this project features modular widgets for tracking time across multiple cities, current weather conditions, and a Pomodoro timer to help maintain focus.
           </p>
           <p>
-            The widgets are designed to be modular and configurable, allowing
-            the ability to customize the cities & functions. The project is an experiment done to explore the new claude code features and Gemini&apos;s capabilities.
+            Each widget is designed to be configurable: swap cities, toggle features, and customise the layout to suit your workflow. It's a practical exploration of Claude Code's capabilities and a testbed for building functional, minimalist interfaces with AI assistance.
           </p>
         </div>
       </DialogContent>
