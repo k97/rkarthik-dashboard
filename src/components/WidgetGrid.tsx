@@ -5,7 +5,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -61,7 +62,7 @@ function SortableWidget({ id, children }: SortableWidgetProps) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="w-full">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="w-full touch-manipulation select-none">
       {children}
     </div>
   );
@@ -76,9 +77,15 @@ export function WidgetGrid({ children }: WidgetGridProps) {
   const [activeId, setActiveId] = useState<WidgetId | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
