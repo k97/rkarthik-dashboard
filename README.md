@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dash
 
-## Getting Started
+A small dashboard of widgets, the kind of thing you leave open on a second screen. Most component libraries are full of tables and charts; this one is for the things you actually glance at during the day — a clock, world clocks, today's date, a pomodoro timer, and a combined home view with weather and sunrise/sunset.
 
-First, run the development server:
+Each widget is built as its own component: the analog clock is drawn from SVG paths so it scales cleanly and eases between positions instead of snapping, the date card computes its own ISO week number, and the timer keeps running through a closed tab and can chime or notify when a phase ends. Widgets can be dragged into whatever order you like, and layout and settings persist in localStorage.
 
-```bash
+## Stack
+
+Next.js 14 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, and dnd-kit for drag and drop.
+
+## Running locally
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Weather and sunrise/sunset data need an OpenWeather key — copy .env.example to .env.local and set OPENWEATHER_API_KEY (get one free at openweathermap.org).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## License
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+CC0 1.0 Universal — see LICENSE.
